@@ -39,16 +39,17 @@ pub struct SkillrCfg {
     pub entropy_rate: f64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rating {
-    loc: f64,
-    scale: f64,
+    pub loc: f64,
+    pub scale: f64,
 }
 
+#[derive(Clone)]
 pub enum Outcome {
     Win,
     Draw,
-    Lose,
+    Loss,
 }
 
 impl Rating {
@@ -60,7 +61,7 @@ impl Rating {
         let (p, o) = match outcome {
             Outcome::Win => (ps[0], 1.0),
             Outcome::Draw => (ps[1], 0.0),
-            Outcome::Lose => (ps[2], -1.0),
+            Outcome::Loss => (ps[2], -1.0),
         };
         let expectation = ps[0] - ps[2];
         let information_gain = -p.ln();
@@ -93,9 +94,31 @@ impl SkillrCfg {
 impl Outcome {
     pub fn inv(&self) -> Self {
         match self {
-            Self::Win => Self::Lose,
+            Self::Win => Self::Loss,
             Self::Draw => Self::Draw,
-            Self::Lose => Self::Win,
+            Self::Loss => Self::Win,
+        }
+    }
+}
+
+impl From<i8> for Outcome {
+    fn from(value: i8) -> Self {
+        match value {
+            -1 => Self::Loss,
+            0 => Self::Draw,
+            1 => Self::Win,
+            _ => panic!("Invalid outcome value"),
+        }
+    }
+}
+
+impl From<&str> for Outcome {
+    fn from(value: &str) -> Self {
+        match value {
+            "Loss" => Self::Loss,
+            "Draw" => Self::Draw,
+            "Win" => Self::Win,
+            _ => panic!("Invalid outcome value"),
         }
     }
 }
