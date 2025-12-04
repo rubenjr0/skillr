@@ -101,24 +101,22 @@ impl Outcome {
     }
 }
 
-impl From<i8> for Outcome {
-    fn from(value: i8) -> Self {
+impl From<&Outcome> for i8 {
+    fn from(value: &Outcome) -> Self {
         match value {
-            -1 => Self::Loss,
-            0 => Self::Draw,
-            1 => Self::Win,
-            _ => panic!("Invalid outcome value"),
+            Outcome::Win => 1,
+            Outcome::Draw => 0,
+            Outcome::Loss => -1,
         }
     }
 }
 
-impl From<&str> for Outcome {
-    fn from(value: &str) -> Self {
+impl From<&Outcome> for String {
+    fn from(value: &Outcome) -> Self {
         match value {
-            "Loss" => Self::Loss,
-            "Draw" => Self::Draw,
-            "Win" => Self::Win,
-            _ => panic!("Invalid outcome value"),
+            Outcome::Win => "Win".to_owned(),
+            Outcome::Draw => "Draw".to_owned(),
+            Outcome::Loss => "Loss".to_owned(),
         }
     }
 }
