@@ -1,30 +1,42 @@
 pub fn rate(p1: &Rating, p2: &Rating, outcome: &Outcome, cfg: &SkillrCfg) -> (Rating, Rating) {
     let d_loc = p1.loc - p2.loc;
     let s_diff = (p1.scale.powi(2) + p2.scale.powi(2) + 2.0 * cfg.beta.powi(2)).sqrt();
-    let z = _fd(cfg.p_draw, d_loc, s_diff);
-    let p_win = 1.0 - z;
-    let p_lose = _fd(-cfg.p_draw, d_loc, s_diff);
-    let p_draw = z - p_lose;
+    let [p_win, p_draw, p_lose] = _probs(d_loc, s_diff, cfg);
     let new_p1 = p1.update(s_diff, [p_win, p_draw, p_lose], outcome, cfg);
     let new_p2 = p2.update(s_diff, [p_lose, p_draw, p_win], &outcome.inv(), cfg);
     (new_p1, new_p2)
 }
 
-fn _fd(x: f64, d_loc: f64, s_diff: f64) -> f64 {
-    _sigma((x - d_loc) / s_diff)
+/// From the perspective of player 1, the probabilities of winning, drawning, losing
+pub fn probs(p1: &Rating, p2: &Rating, cfg: &SkillrCfg) -> [f64; 3] {
+    let d_loc = p1.loc - p2.loc;
+    let s_diff = (p1.scale.powi(2) + p2.scale.powi(2) + 2.0 * cfg.beta.powi(2)).sqrt();
+    _probs(d_loc, s_diff, cfg)
 }
 
-fn _sigma(z: f64) -> f64 {
+fn _probs(d_loc: f64, s_diff: f64, cfg: &SkillrCfg) -> [f64; 3] {
+    let z = fd(cfg.p_draw, d_loc, s_diff);
+    let p_win = 1.0 - z;
+    let p_lose = fd(-cfg.p_draw, d_loc, s_diff);
+    let p_draw = z - p_lose;
+    [p_win, p_draw, p_lose]
+}
+
+fn fd(x: f64, d_loc: f64, s_diff: f64) -> f64 {
+    sigma((x - d_loc) / s_diff)
+}
+
+fn sigma(z: f64) -> f64 {
     (1.0 + (-z).exp()).recip()
 }
 
 pub struct SkillrCfg {
-    loc: f64,
-    scale: f64,
-    beta: f64,
-    tau: f64,
-    p_draw: f64,
-    entropy_rate: f64,
+    pub loc: f64,
+    pub scale: f64,
+    pub beta: f64,
+    pub tau: f64,
+    pub p_draw: f64,
+    pub entropy_rate: f64,
 }
 
 #[derive(Debug)]
@@ -72,8 +84,14 @@ impl Rating {
     }
 }
 
+impl SkillrCfg {
+    pub fn rating(&self) -> Rating {
+        Rating::new(self.loc, self.scale)
+    }
+}
+
 impl Outcome {
-    fn inv(&self) -> Self {
+    pub fn inv(&self) -> Self {
         match self {
             Self::Win => Self::Lose,
             Self::Draw => Self::Draw,
