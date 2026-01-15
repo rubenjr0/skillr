@@ -3,7 +3,7 @@ name = "skillr"
 description = "Lightweight skill rating library inspired by TrueSkill, OpenSkill, and the skillratings crate"
 version = "0.1.2"
 edition = "2024"
-license = "AGPLv3"
+license = "AGPL_3_0_or_later"
 authors = ["rubenjr0"]
 
 [dependencies]
